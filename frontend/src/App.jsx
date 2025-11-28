@@ -43,22 +43,35 @@ import ListPage from "./pages/ListPage";
 import AddMedicationPage from "./pages/AddMedicationPage";
 import DetailPage from "./pages/DetailPage";
 import DosesPage from "./pages/DosesPage";
+import ViewSchedulesPage from "./pages/ViewSchedulesPage";
 
 function App() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="bg-indigo-600 text-white p-4">
-        <nav className="flex space-x-4">
-          <Link to="/">Medications</Link>
-          <Link to="/add">Add Medication</Link>
-          <Link to="/doses">Upcoming Doses</Link>
-        </nav>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">MM</div>
+            <div>
+              <h1 className="text-lg font-semibold text-slate-800">Medication Manager</h1>
+              <p className="text-xs text-slate-500">Manage medications, schedules and doses</p>
+            </div>
+          </div>
+
+          <nav className="space-x-4 text-sm">
+            <Link className="text-slate-600 hover:text-indigo-600" to="/">Medications</Link>
+            <Link className="text-slate-600 hover:text-indigo-600" to="/add">Add</Link>
+            <Link className="text-slate-600 hover:text-indigo-600" to="/doses">Doses</Link>
+            <Link className="text-slate-600 hover:text-indigo-600" to="/schedules">Schedules</Link>
+          </nav>
+        </div>
       </header>
 
-      <main className="p-4">
-        <Routes>
+      <main className="p-6">
+        <div className="max-w-6xl mx-auto">
+          <Routes>
           <Route
             path="/"
             element={
@@ -69,8 +82,10 @@ function App() {
           />
           <Route path="/add" element={<AddMedicationPage />} />
           <Route path="/doses" element={<DosesPage />} />
+          <Route path="/schedules" element={<ViewSchedulesPage />} />
           <Route path="/detail/:id" element={<DetailPageWrapper />} />
-        </Routes>
+          </Routes>
+        </div>
       </main>
     </div>
   );

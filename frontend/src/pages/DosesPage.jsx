@@ -11,30 +11,33 @@ export default function DosesPage() {
       await markTaken(dose.id);
       refetch();
     } catch (err) {
-      // In a real app, show toast. For now log:
       console.error(err);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Upcoming doses</h1>
-        <button
-          type="button"
-          onClick={refetch}
-          className="text-xs px-3 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
-        >
-          Refresh
-        </button>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Upcoming Doses</h1>
+        <div>
+          <button
+            type="button"
+            onClick={refetch}
+            className="text-sm px-3 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
-      <UpcomingDoses
-        doses={doses}
-        loading={status === 'loading'}
-        error={error}
-        onMarkTaken={handleMarkTaken}
-      />
+      <div className="bg-white p-4 rounded shadow">
+        <UpcomingDoses
+          doses={doses}
+          loading={status === 'loading'}
+          error={error}
+          onMarkTaken={handleMarkTaken}
+        />
+      </div>
     </div>
   );
 }

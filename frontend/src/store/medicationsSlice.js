@@ -123,6 +123,30 @@ export const addMedication = createAsyncThunk(
   }
 );
 
+// Deactivate medication
+export const deactivateMedication = createAsyncThunk(
+  'medications/deactivate',
+  async (medicationId, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/medications/${medicationId}/deactivate`, {
+        method: 'POST',
+        headers: { 'x-api-key': API_KEY },
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      // Update cache: fetch current cached and update
+      const cached = await getCachedMedications();
+      const updated = (cached || []).map((m) => (m.id === data.id ? data : m));
+      cacheMedications(updated);
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.message || 'Failed to deactivate medication');
+    }
+  }
+);
+
 // --------------------------------------------------------
 // Slice
 // --------------------------------------------------------
@@ -160,6 +184,12 @@ const medicationsSlice = createSlice({
       .addCase(addMedication.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || action.error.message;
+      });
+      
+      builder.addCase(deactivateMedication.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const idx = state.items.findIndex((m) => m.id === updated.id);
+        if (idx !== -1) state.items[idx] = updated;
       });
   },
 });

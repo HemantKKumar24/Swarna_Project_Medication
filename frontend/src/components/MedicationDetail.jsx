@@ -8,30 +8,8 @@
 //         <p className="text-sm text-slate-500">Medication not found.</p>
 //       </div>
 //     );
-//   }
-
-//   return (
-//     <div className="bg-white shadow rounded-xl p-4 space-y-3">
-//       <h2 className="text-xl font-semibold text-slate-800">{medication.name}</h2>
-//       {medication.instructions && (
-//         <p className="text-sm text-slate-700">{medication.instructions}</p>
-//       )}
-
-//       <p className="text-xs text-slate-500">
-//         Status:{' '}
-//         <span className="font-medium">
-//           {medication.is_active ? 'Active' : 'Inactive'}
-//         </span>
-//       </p>
-//     </div>
-//   );
-// }
-
-
-
-
-
-import { useEffect} from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import ScheduleList from "./ScheduleList";
 import ScheduleForm from "./ScheduleForm";
 import {
@@ -39,28 +17,54 @@ import {
   createSchedule,
   generateDoses,
 } from "../store/scheduleSlice";
-import { fetchMedications } from "../store/medicationsSlice";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchMedications as fetchMeds,
+  deactivateMedication,
+} from "../store/medicationsSlice";
 
 export default function MedicationDetail({ medicationId }) {
   const dispatch = useDispatch();
   const { items: medications } = useSelector((s) => s.medications);
   const { items: schedules } = useSelector((s) => s.schedule);
+  const [scheduleMsg, setScheduleMsg] = useState("");
+  const [formKey, setFormKey] = useState(0);
 
   const med = medications.find((m) => m.id === medicationId);
 
   useEffect(() => {
-    dispatch(fetchMedications());
+    dispatch(fetchMeds());
     dispatch(fetchSchedulesForMedication(medicationId));
-  }, [medicationId]);
+  }, [dispatch, medicationId]);
 
   const handleCreateSchedule = async (payload) => {
-    const res = await dispatch(createSchedule(payload));
+    setScheduleMsg("");
+    try {
+      const res = await dispatch(createSchedule(payload));
 
-    if (res.meta.requestStatus === "fulfilled") {
-      const newSchedule = res.payload;
-      dispatch(generateDoses(newSchedule.id));
+      if (res.meta.requestStatus === "fulfilled") {
+        const newSchedule = res.payload;
+        setScheduleMsg(`✓ Schedule created successfully! Generating ${newSchedule.times.length} dose(s)...`);
+        dispatch(generateDoses(newSchedule.id));
+        dispatch(fetchSchedulesForMedication(medicationId));
+        setFormKey((k) => k + 1); // Reset form
+        setTimeout(() => setScheduleMsg(""), 3000);
+      } else {
+        setScheduleMsg(`Error: ${res.payload || "Failed to create schedule"}`);
+      }
+    } catch (err) {
+      setScheduleMsg(`Error: ${String(err.message || err)}`);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!confirm("Are you sure you want to deactivate this medication?")) return;
+    const res = await dispatch(deactivateMedication(med.id));
+    if (res.meta && res.meta.requestStatus === "fulfilled") {
+      // refresh meds and schedules
+      dispatch(fetchMeds());
       dispatch(fetchSchedulesForMedication(medicationId));
+    } else {
+      alert("Failed to deactivate medication");
     }
   };
 
@@ -68,16 +72,47 @@ export default function MedicationDetail({ medicationId }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">{med.name}</h2>
+      <div className="bg-white p-4 rounded shadow border">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">{med.name}</h2>
+            {med.instructions && (
+              <p className="text-sm text-gray-700 mt-2">{med.instructions}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-3">Status: {med.is_active ? "Active" : "Inactive"}</p>
+          </div>
 
-      <h3 className="text-xl font-semibold">Schedules</h3>
-      <ScheduleList schedules={schedules} />
+          <div className="ml-4">
+            {med.is_active && (
+              <button className="text-sm bg-red-600 text-white px-3 py-1 rounded" onClick={handleDeactivate}>
+                Deactivate
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <h3 className="text-xl font-semibold">Add New Schedule</h3>
-      <ScheduleForm
-        medicationId={medicationId}
-        onSubmit={handleCreateSchedule}
-      />
+      <div>
+        <h3 className="text-xl font-semibold mb-3">Schedules</h3>
+        <ScheduleList schedules={schedules} />
+      </div>
+
+      <div>
+        <h3 className="text-xl font-semibold mb-3">Add New Schedule</h3>
+        {scheduleMsg && (
+          <div className={`mb-4 p-3 rounded text-sm ${
+            scheduleMsg.startsWith("✓") ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"
+          }`}>
+            {scheduleMsg}
+          </div>
+        )}
+        <ScheduleForm
+          key={formKey}
+          medicationId={medicationId}
+          medications={medications}
+          onSubmit={handleCreateSchedule}
+        />
+      </div>
     </div>
   );
 }
