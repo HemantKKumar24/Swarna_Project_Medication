@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ../backend
+    ports:
+      - "8000:8000"
+    environment:
+      DOCUMENTDB_URI: ""
+      USE_LOCAL_STORE: "1"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"

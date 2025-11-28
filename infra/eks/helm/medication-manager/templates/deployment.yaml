@@ -1,0 +1,24 @@
+# Deployment template placeholder
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medication-manager
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: medication-manager
+  template:
+    metadata:
+      labels:
+        app: medication-manager
+    spec:
+      containers:
+        - name: api
+          image: {{ .Values.image }}
+          env:
+            - name: DOCUMENTDB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: docdb-secret
+                  key: uri

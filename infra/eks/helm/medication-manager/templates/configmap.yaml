@@ -1,0 +1,4 @@
+# ConfigMap template placeholder
+apiVersion: v1
+kind: ConfigMap
+metadata: {}

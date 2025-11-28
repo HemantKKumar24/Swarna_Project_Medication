@@ -1,0 +1,4 @@
+# HPA template placeholder
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {}

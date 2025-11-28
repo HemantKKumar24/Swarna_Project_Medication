@@ -1,0 +1,10 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "medication-api",
+      "image": "123.dkr.ecr.amazonaws.com/meds:latest",
+      "portMappings": [{ "containerPort": 8000 }]
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"]
+}
