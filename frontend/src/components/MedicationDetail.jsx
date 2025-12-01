@@ -1,13 +1,6 @@
 // // frontend/src/components/MedicationDetail.jsx
-// import React from 'react';
+// // frontend/src/components/MedicationDetail.jsx
 
-// export default function MedicationDetail({ medication }) {
-//   if (!medication) {
-//     return (
-//       <div className="bg-white shadow rounded-xl p-4">
-//         <p className="text-sm text-slate-500">Medication not found.</p>
-//       </div>
-//     );
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ScheduleList from "./ScheduleList";
@@ -21,6 +14,7 @@ import {
   fetchMedications as fetchMeds,
   deactivateMedication,
 } from "../store/medicationsSlice";
+import { useNavigate } from "react-router-dom";   // ✅ ADDED
 
 export default function MedicationDetail({ medicationId }) {
   const dispatch = useDispatch();
@@ -28,6 +22,7 @@ export default function MedicationDetail({ medicationId }) {
   const { items: schedules } = useSelector((s) => s.schedule);
   const [scheduleMsg, setScheduleMsg] = useState("");
   const [formKey, setFormKey] = useState(0);
+  const navigate = useNavigate();   // ✅ ADDED
 
   const med = medications.find((m) => m.id === medicationId);
 
@@ -43,7 +38,9 @@ export default function MedicationDetail({ medicationId }) {
 
       if (res.meta.requestStatus === "fulfilled") {
         const newSchedule = res.payload;
-        setScheduleMsg(`✓ Schedule created successfully! Generating ${newSchedule.times.length} dose(s)...`);
+        setScheduleMsg(
+          `✓ Schedule created successfully! Generating ${newSchedule.times.length} dose(s)...`
+        );
         dispatch(generateDoses(newSchedule.id));
         dispatch(fetchSchedulesForMedication(medicationId));
         setFormKey((k) => k + 1); // Reset form
@@ -57,18 +54,27 @@ export default function MedicationDetail({ medicationId }) {
   };
 
   const handleDeactivate = async () => {
-    if (!confirm("Are you sure you want to deactivate this medication?")) return;
+    if (!confirm("Are you sure you want to deactivate this medication?"))
+      return;
+
     const res = await dispatch(deactivateMedication(med.id));
+
     if (res.meta && res.meta.requestStatus === "fulfilled") {
-      // refresh meds and schedules
       dispatch(fetchMeds());
       dispatch(fetchSchedulesForMedication(medicationId));
+
+      navigate("/");   // ✅ ADDED → redirect after deactivation
     } else {
       alert("Failed to deactivate medication");
     }
   };
 
-  if (!med) return <p>Loading medication...</p>;
+  // if (!med) return <p>Loading medication...</p>;
+
+if (!med) {
+  navigate("/");   // ✅ redirect if medication is removed
+  return null;
+}
 
   return (
     <div className="space-y-6">
@@ -79,12 +85,17 @@ export default function MedicationDetail({ medicationId }) {
             {med.instructions && (
               <p className="text-sm text-gray-700 mt-2">{med.instructions}</p>
             )}
-            <p className="text-xs text-gray-500 mt-3">Status: {med.is_active ? "Active" : "Inactive"}</p>
+            <p className="text-xs text-gray-500 mt-3">
+              Status: {med.is_active ? "Active" : "Inactive"}
+            </p>
           </div>
 
           <div className="ml-4">
             {med.is_active && (
-              <button className="text-sm bg-red-600 text-white px-3 py-1 rounded" onClick={handleDeactivate}>
+              <button
+                className="text-sm bg-red-600 text-white px-3 py-1 rounded"
+                onClick={handleDeactivate}
+              >
                 Deactivate
               </button>
             )}
@@ -100,9 +111,13 @@ export default function MedicationDetail({ medicationId }) {
       <div>
         <h3 className="text-xl font-semibold mb-3">Add New Schedule</h3>
         {scheduleMsg && (
-          <div className={`mb-4 p-3 rounded text-sm ${
-            scheduleMsg.startsWith("✓") ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"
-          }`}>
+          <div
+            className={`mb-4 p-3 rounded text-sm ${
+              scheduleMsg.startsWith("✓")
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
             {scheduleMsg}
           </div>
         )}
