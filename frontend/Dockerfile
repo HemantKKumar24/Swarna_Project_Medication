@@ -1,42 +1,48 @@
-# frontend/Dockerfile
+# # Swarna_Project_Medication\frontend\Dockerfile
 
-# Build stage
-FROM node:18-alpine AS build
+# # --- Stage 1: Builder ---
+# FROM node:20-alpine AS builder
+
+# WORKDIR /app
+
+# COPY package.json package-lock.json* ./
+# RUN npm install
+
+# COPY . .
+
+# RUN npm run build
+
+# # --- Stage 2: Serve with Nginx ---
+# FROM nginx:stable-alpine
+
+# COPY --from=builder /app/dist /usr/share/nginx/html
+
+# EXPOSE 80
+
+# CMD ["nginx", "-g", "daemon off;"]
+
+
+
+# Swarna_Project_Medication\frontend\Dockerfile
+
+# --- Stage 1: Builder ---
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-ENV CI=true
-
-COPY package.json package-lock.json* yarn.lock* ./
-RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    else npm install; \
-    fi
+COPY package.json package-lock.json* ./
+RUN npm install
 
 COPY . .
 
-RUN npm run build
+# Correct way to pass mode to Vite
+# RUN npm run build -- --mode docker
+RUN npm run build 
 
-# Production stage
-FROM nginx:1.27-alpine
+# --- Stage 2: Serve with Nginx ---
+FROM nginx:stable-alpine
 
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Simple default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-COPY <<EOF /etc/nginx/conf.d/default.conf
-server {
-  listen       80;
-  server_name  _;
-
-  root   /usr/share/nginx/html;
-  index  index.html index.htm;
-
-  location / {
-    try_files \$uri /index.html;
-  }
-}
-EOF
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 

@@ -1,0 +1,53 @@
+# version: "3.9"
+
+# services:
+#   backend:
+#     build:
+#       context: ./backend
+#       dockerfile: Dockerfile
+#     container_name: backend_service
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - ./backend/app:/app/app
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#     restart: always
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+#     container_name: frontend_service
+#     ports:
+#       - "80:80"
+#     depends_on:
+#       - backend
+#     restart: always
+
+
+
+
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_service
+    ports:
+      - "8000:8000"
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_service
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
